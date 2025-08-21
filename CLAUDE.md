@@ -364,33 +364,39 @@ mcp-server-demo/
 ## Tutorial progression
 
 ### Part 1: Basic resource server
+
 - Create `resource_server/server.py` with a single public tool
 - Run with `uv run mcp dev resource_server/server.py`
 - Teaches: MCP fundamentals, FastMCP basics
 
 ### Part 2: Authorization server foundation
+
 - Create `authorization_server/` with two-file structure
 - `server.py`: Web layer with routes
 - `auth_provider.py`: Logic layer (initially stubbed)
 - Teaches: Service separation, clean architecture
 
 ### Part 3: Complete AS implementation
+
 - Implement full OAuth flow in `auth_provider.py`
 - Wire up login form, authorization, and token endpoints
 - Teaches: OAuth 2.1 flow, PKCE, token generation
 
 ### Part 4: Protect RS and refactor
+
 - Add `TokenVerifier` class to RS
 - Extract tools to `resource_server/tools.py`
 - Add protected tools requiring authentication
 - Teaches: Service integration, token validation, refactoring
 
 ### Part 5: Client implementation
+
 - Create `client.py` for full three-party flow
 - Demonstrates complete authentication flow
 - Teaches: Client-side OAuth, MCP client patterns
 
 ### Part 6: Enhanced patterns
+
 - Add database persistence to AS
 - Implement token scopes in RS
 - Add configuration management
@@ -399,17 +405,20 @@ mcp-server-demo/
 ## Service interaction patterns
 
 ### Resource Server (RS)
+
 - The RS **is** the MCP server that provides tools
 - Starts as a single file in Part 1
 - Refactored to two-file structure in Part 4
 - Validates tokens by calling AS endpoints
 
 ### Authorization Server (AS)
+
 - Separate FastAPI application on port 9000
 - Two-file structure from the start (Part 2)
 - Provides OAuth 2.1 endpoints and token validation
 
 ### Key teaching moments
+
 1. **Part 1**: Single service, no auth - baseline functionality
 2. **Part 2-3**: Build AS separately - understand OAuth in isolation
 3. **Part 4**: Connect services - see how they interact
@@ -427,3 +436,8 @@ The implementation succeeds when:
 5. Errors provide learning opportunities with helpful messages
 6. The progression from Part 1 to Part 6 feels natural
 7. Developers understand both the "what" and "why" of the architecture
+
+## Markdown formatting guidelines
+
+- You MUST surround lists, headings, and fenced code blocks with blank lines; this applies to lists that appear within lists.
+- You MUST use sentence case for all headings and heading-like text.
