@@ -2,230 +2,135 @@
 
 ## Project purpose
 
-This project serves as the **completed reference implementation** for a multi-part developer tutorial on building MCP servers with authentication. Each phase below corresponds to a tutorial part, with every step producing a working, testable server that developers can verify against this reference.
+This project serves as the **completed reference implementation** for a multi-part developer tutorial on building secure MCP servers. Its architecture physically separates the **Resource Server (RS)** from the **Authorization Server (AS)** and organizes each service internally for clarity and scalability.
 
 ## Tutorial design principles
 
 ### Developer journey
 
-1. **Start simple** - Begin with a working MCP server without auth
-2. **Add incrementally** - Each tutorial part adds one major concept
-3. **Test continuously** - Every phase ends with a testable milestone
-4. **Learn by doing** - Code first, theory follows from practice
-5. **Compare and verify** - Developers can check their work against this repo
+1.  **Start simple** - Build a working, single-file Resource Server (which is also the MCP server).
+2.  **Build the second service** - Create the Authorization Server with a clean two-file structure.
+3.  **Connect and protect** - Integrate the two services to secure the RS.
+4.  **Refactor for clarity** - Refactor the RS to mirror the clean structure of the AS.
+5.  **Test continuously** - Each part ends with a testable, working system.
 
 ### Code organization for learning
 
-- **Clear file boundaries** - Each module has a single, clear purpose
-- **Progressive disclosure** - Advanced features in separate files
-- **Extensive comments** - Explain the "why" not just the "what"
-- **Checkpoint branches** - Git tags for each tutorial completion point
+-   **Clear service boundaries** - The RS and AS live in separate, self-contained directories.
+-   **Separation of concerns** - Each service separates its web layer from its logic layer.
+-   **Extensive comments** - Explain the "why," not just the "what."
+-   **Checkpoint branches** - Git tags for each tutorial completion point.
 
 ## Tutorial parts with milestones
 
-### Part 1: Basic MCP server (no auth)
+### Part 1: Basic resource server
 
-**Learning objective**: Understand MCP server basics and FastMCP
+**Learning objective**: Create a standalone **Resource Server (RS)**  that's the **MCP server** and the foundation of the project.
 
 **What developers will build**:
 
-```python
-# server.py - Complete working server
-from mcp.server.fastmcp import FastMCP
-
-server = FastMCP("demo-server")
-
-@server.tool()
-async def get_time():
-    """Get current server time."""
-    from datetime import datetime
-    return datetime.now().isoformat()
-
-@server.resource("text/plain")
-async def readme():
-    """Get server information."""
-    return "MCP Demo Server - Part 1 Complete"
-```
+-   A `resource_server/` directory containing a single `server.py` file.
+-   This file will contain a basic, runnable `FastMCP` application with one tool.
 
 **Verification checkpoint**:
 
-- Run with `uv run mcp dev server.py`
-- Test tool execution in MCP Inspector
-- Confirm resource listing works
+-   Run the RS with `uv run mcp dev resource_server/server.py`.
+-   Test the tool in the MCP Inspector.
 
 **Files created**:
 
-- `server.py` - Main server file
-- `pyproject.toml` - Dependencies
-- `.env.example` - Environment template
-- `README.md` - Setup instructions
+-   `resource_server/server.py`
+-   `pyproject.toml`
+-   `.env.example`
+-   `README.md`
 
-### Part 2: Add authorization server foundation
+### Part 2: Standalone authorization server foundation
 
-**Learning objective**: Understand OAuth 2.1 server role and metadata
-
-**What developers will build**:
-
-- Add `auth/` directory structure
-- Implement metadata endpoints
-- Create demo provider skeleton
-- Add auth server routes
-
-**New files**:
-
-```
-auth/
-├── __init__.py
-├── provider.py        # OAuth provider interface
-├── demo_provider.py   # Simple implementation
-└── metadata.py        # Server metadata endpoints
-```
-
-**Verification checkpoint**:
-
-- Access `/.well-known/oauth-authorization-server`
-- Access `/.well-known/oauth-protected-resource`
-- Server still works with existing tools
-
-### Part 3: Implement authentication flow
-
-**Learning objective**: Understand OAuth authorization code flow
+**Learning objective**: Build a separate, standalone **Authorization Server (AS)** with a clean two-file structure.
 
 **What developers will build**:
 
-- Login form endpoint
-- Authorization endpoint
-- Token exchange endpoint
-- State management
-
-**Enhanced files**:
-
-- `auth/demo_provider.py` - Full auth flow
-- `auth/templates.py` - Login form HTML
-- `auth/tokens.py` - Token generation
+-   An `authorization_server/` directory.
+-   `server.py`: The web layer, responsible for setting up the server and defining HTTP routes.
+-   `auth_provider.py`: The logic layer, responsible for the core OAuth logic (initially a stub).
 
 **Verification checkpoint**:
 
-- Complete manual auth flow in browser
-- Obtain access token via curl
-- Verify token structure
+-   Run the AS with `uv run authorization_server/server.py`.
+-   Access `http://localhost:9000/.well-known/oauth-authorization-server`.
 
-### Part 4: Protect MCP resources
+### Part 3: Implement AS authentication flow
 
-**Learning objective**: Connect OAuth tokens to MCP access control
+**Learning objective**: Complete the core logic of the **Authorization Server (AS)** to handle the full OAuth flow.
 
 **What developers will build**:
 
-- Bearer token middleware
-- Protected tool decorators
-- Auth context injection
-- WWW-Authenticate headers
-
-**New files**:
-
-```
-auth/
-├── middleware.py      # Bearer token validation
-├── context.py         # Auth context for tools
-tools/
-├── __init__.py
-├── public.py         # Public tools (moved from server.py)
-└── protected.py      # New protected tools
-```
+-   Add the full implementation for token and code generation to `auth_provider.py`.
+-   Wire up the logic to the routes in `server.py` for the login form, authorization, and token endpoints.
 
 **Verification checkpoint**:
 
-- Public tools work without auth
-- Protected tools require valid token
-- 401 responses include proper headers
+-   Run the AS.
+-   Manually perform the auth flow in a browser to obtain an access token.
+
+### Part 4: Protect the resource server and refactor
+
+**Learning objective**: Secure the **RS** by connecting it to the **AS**, and refactor the RS for better organization.
+
+**What developers will build**:
+
+-   **In `resource_server/server.py`**: Add a `TokenVerifier` class and middleware to protect the server.
+-   **Create `resource_server/tools.py`**: Move the existing tool here and add a new protected tool.
+-   **Update `resource_server/server.py`**: Import and register the tools from `tools.py`.
+
+**Verification checkpoint**:
+
+-   Run both the AS and RS in separate terminals.
+-   Confirm public tools on the RS work without a token; protected tools return a 401.
 
 ### Part 5: Add client examples
 
-**Learning objective**: Understand client-side auth flow
+**Learning objective**: Build a client that orchestrates the full three-party authentication flow.
 
 **What developers will build**:
 
-- Python client with auth
-- Token refresh logic
-- Error handling
-
-**New files**:
-
-```
-examples/
-├── client.py         # Full auth client
-├── test_auth.py      # Auth flow tests
-└── demo_session.py   # Interactive demo
-```
+-   A `client.py` that connects to the RS, triggers the login flow on the AS, and uses the obtained token to access protected tools on the RS.
 
 **Verification checkpoint**:
 
-- Client obtains token automatically
-- Client accesses protected resources
-- Token refresh works
+-   With both servers running, execute `uv run client.py`.
+-   The client should successfully authenticate and call both public and protected tools.
 
 ### Part 6: Production patterns
 
-**Learning objective**: Make it production-ready
+**Learning objective**: Enhance both services with more robust, production-oriented features.
 
 **What developers will enhance**:
 
-- Persistent token storage
-- Scope-based access control
-- Revocation support
-- Security headers
-- Rate limiting
-
-**Enhanced files**:
-
-- `auth/storage.py` - Token persistence
-- `auth/scopes.py` - Scope validation
-- `config.py` - Production settings
-
-**Final verification**:
-
-- All OAuth 2.1 flows work
-- Security best practices applied
-- Ready for deployment
+-   **AS**: Modify `auth_provider.py` to use a database for persistent token storage.
+-   **RS**: Modify `server.py` to check for specific token scopes.
+-   **Both**: Add configuration files to manage settings.
 
 ## File structure for tutorial clarity
 
 ```
+
 mcp-server-demo/
-├── server.py                 # Main entry - grows with each part
-├── config.py                 # Settings - added in Part 2
-├── auth/                     # Added in Part 2
+├── authorization_server/
 │   ├── __init__.py
-│   ├── provider.py          # Abstract base - Part 2
-│   ├── demo_provider.py     # Implementation - Part 2-3
-│   ├── metadata.py          # Endpoints - Part 2
-│   ├── tokens.py            # Management - Part 3
-│   ├── middleware.py        # Protection - Part 4
-│   ├── context.py           # Auth context - Part 4
-│   ├── storage.py           # Persistence - Part 6
-│   └── scopes.py            # Access control - Part 6
-├── tools/                    # Refactored in Part 4
+│   ├── server.py         # AS web layer: routes and server setup
+│   └── auth_provider.py  # AS logic layer: core OAuth implementation
+├── resource_server/
 │   ├── __init__.py
-│   ├── public.py            # No auth required
-│   └── protected.py         # Auth required
-├── resources/                # Refactored in Part 4
-│   ├── __init__.py
-│   ├── public.py
-│   └── protected.py
-├── examples/                 # Added in Part 5
-│   ├── client.py
-│   ├── test_auth.py
-│   └── demo_session.py
-├── tests/                    # Added progressively
-│   ├── test_part1.py        # Basic server tests
-│   ├── test_part2.py        # Metadata tests
-│   ├── test_part3.py        # Auth flow tests
-│   ├── test_part4.py        # Protection tests
-│   ├── test_part5.py        # Client tests
-│   └── test_part6.py        # Production tests
-├── .env.example              # Grows with each part
-├── pyproject.toml            # Dependencies added per part
-└── README.md                 # Tutorial checkpoint guide
+│   ├── server.py         # RS app layer: server setup and auth protection
+│   └── tools.py          # RS content layer: MCP tool definitions
+├── client.py             # Example client to test the full flow
+├── tests/
+│   ├── test_resource_server.py
+│   └── test_auth_server.py
+├── .env.example
+├── pyproject.toml
+└── README.md
 ```
 
 ## Git strategy for tutorial
@@ -234,125 +139,48 @@ mcp-server-demo/
 
 ```
 main                  # Complete implementation
-├── tutorial/part-1   # Tag: Basic server
-├── tutorial/part-2   # Tag: Auth foundation
-├── tutorial/part-3   # Tag: Auth flow
-├── tutorial/part-4   # Tag: Protected resources
-├── tutorial/part-5   # Tag: Client examples
-└── tutorial/part-6   # Tag: Production ready
+├── tutorial/part-1   # Tag: Basic RS
+├── tutorial/part-2   # Tag: AS Foundation
+├── tutorial/part-3   # Tag: AS Auth Flow
+├── tutorial/part-4   # Tag: Protected & Refactored RS
+├── tutorial/part-5   # Tag: Client Example
+└── tutorial/part-6   # Tag: Production Patterns
 ```
 
 ### Commit message pattern
 
-```
-Part X: [Feature] - [What it teaches]
+```text
+Part X (Service): [Feature] - [What it teaches]
 
 Example:
-Part 2: Add OAuth metadata endpoints - Teaches server discovery
-Part 4: Implement bearer token validation - Teaches resource protection
+Part 2 (AS): Create web and logic layers - Teaches separation of concerns
+Part 4 (RS): Add token verifier - Teaches service-to-service validation
 ```
-
-## Documentation requirements
-
-### In-code documentation
-
-Each file must include:
-
-1. **File header** explaining its role in the tutorial
-2. **Function docstrings** with learning notes
-3. **Inline comments** for non-obvious logic
-4. **TODO markers** for tutorial exercises
-
-Example:
-
-```python
-"""
-Part 4: Bearer token middleware
-
-This module validates OAuth 2.0 bearer tokens for protected resources.
-Tutorial readers will learn:
-- How to extract tokens from headers
-- When to return 401 vs 403
-- How to inject auth context
-
-TODO (Exercise 4.1): Add token expiration check
-TODO (Exercise 4.2): Implement scope validation
-"""
-```
-
-### README sections
-
-Each part needs:
-
-1. **What you'll learn** - Clear learning objectives
-2. **Prerequisites** - What parts must be complete
-3. **New concepts** - Technical concepts introduced
-4. **Step-by-step** - Detailed implementation steps
-5. **Testing** - How to verify it works
-6. **Troubleshooting** - Common issues and fixes
-7. **Next steps** - Preview of next part
 
 ## Implementation guidelines
 
 ### Code style for learning
 
-1. **Explicit over implicit** - No magic, show all steps
-2. **Verbose variable names** - `authorization_code` not `auth_code`
-3. **Group related code** - Keep auth stuff in auth/
-4. **Avoid over-abstraction** - Some repetition is OK for clarity
-5. **Error messages that teach** - Explain what went wrong and why
+  - **Separation of concerns**: Enforce component split from the start.
+  - **Explicit over implicit**: Show the `httpx` call from the RS's `TokenVerifier` to the AS's endpoints.
+  - **Clear imports**: `from . import tools` and `from . import auth_provider` make dependencies obvious.
 
 ### Progressive complexity
 
-Start simple, add complexity only when needed:
-
-1. **Part 1-3**: Hardcoded values OK (demo only)
-2. **Part 4-5**: Add configuration options
-3. **Part 6**: Production patterns
-
-### Testing philosophy
-
-Each part has tests that:
-
-1. **Verify the happy path** - What should work
-2. **Test error cases** - What should fail
-3. **Demonstrate usage** - Tests as documentation
-4. **Build confidence** - Developers know it works
+1.  **Part 1**: A single, runnable service in one file.
+2.  **Part 2**: A second service built with a two-file structure.
+3.  **Part 3**: Flesh out the logic in the AS.
+4.  **Part 4**: Integrate the two services and refactor the first service to match the cleaner structure.
+5.  **Part 5-6**: Add the client and enhance both services with production features.
 
 ## Success metrics
 
-This reference implementation succeeds when:
-
-1. **Developers can follow along** - Each part builds successfully
-2. **Concepts are clear** - Auth flow makes sense
-3. **Code is debuggable** - Easy to troubleshoot issues
-4. **Production-ready** - Final result is usable
-5. **Extensible** - Easy to add custom auth providers
+1.  A developer understands and can replicate the clean, two-file structure for both services.
+2.  The relationship and clear boundaries between a service's web layer and logic layer are understood.
+3.  The final project is well-organized, spec-compliant, and easy to extend.
 
 ## Development workflow
 
-### Building the reference
-
-1. **Start with Part 6** - Build complete implementation
-2. **Work backwards** - Strip features for earlier parts
-3. **Tag each part** - Create checkpoint tags
-4. **Test progression** - Verify part-by-part build
-5. **Document thoroughly** - Explain every decision
-
-### Creating the tutorial
-
-1. **Write as you build** - Document fresh insights
-2. **Test with beginners** - Get feedback early
-3. **Include diagrams** - Visual auth flow
-4. **Provide exercises** - Let developers practice
-5. **Offer solutions** - Complete code for checking
-
-## Next steps
-
-1. Build complete implementation (Part 6)
-2. Create git tags for each part
-3. Write tutorial Part 1
-4. Test with target audience
-5. Iterate based on feedback
-
-This plan ensures the code serves its primary purpose: teaching developers how to add authentication to MCP servers through hands-on, incremental learning.
+1.  Build the final, complete two-service implementation.
+2.  Work backwards to create the state for each tutorial part, ensuring the step-by-step creation and refactoring process is logical.
+3.  Tag each part and test the progression.
