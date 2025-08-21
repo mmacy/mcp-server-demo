@@ -255,7 +255,7 @@ class AuthServerSettings(BaseSettings):
     demo_username: str = "demo_user"
     demo_password: str = "demo_password"
 
-    # Tutorial Part 6: Production
+    # Tutorial Part 6: Enhanced features
     token_lifetime: int = 3600
     refresh_enabled: bool = False
 ```
@@ -275,12 +275,12 @@ Part 2 (AS): Create web and logic layers - Teaches separation of concerns
 Part 3 (AS): Implement token exchange - Teaches OAuth code flow
 Part 4 (RS): Add token verifier - Teaches service-to-service validation
 Part 5: Add client example - Teaches three-party OAuth flow
-Part 6 (RS+AS): Add production patterns - Teaches hardening
+Part 6 (RS+AS): Add enhanced patterns - Teaches advanced concepts
 ```
 
 ### Branch strategy
 
-- `main` - Complete Part 6 implementation
+- `main` - Complete implementation with all 6 parts
 - `tutorial/part-X` - Tagged checkpoints for each tutorial part
 
 ### Development workflow
@@ -390,11 +390,11 @@ mcp-server-demo/
 - Demonstrates complete authentication flow
 - Teaches: Client-side OAuth, MCP client patterns
 
-### Part 6: Production patterns
+### Part 6: Enhanced patterns
 - Add database persistence to AS
 - Implement token scopes in RS
 - Add configuration management
-- Teaches: Production considerations, security hardening
+- Teaches: Advanced patterns, additional security layers
 
 ## Service interaction patterns
 
@@ -414,7 +414,7 @@ mcp-server-demo/
 2. **Part 2-3**: Build AS separately - understand OAuth in isolation
 3. **Part 4**: Connect services - see how they interact
 4. **Part 5**: Add client - complete the three-party OAuth dance
-5. **Part 6**: Production ready - handle real-world concerns
+5. **Part 6**: Enhanced features - demonstrate advanced concepts
 
 ## Success criteria
 

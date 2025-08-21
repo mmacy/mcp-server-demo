@@ -101,9 +101,9 @@ This project serves as the **completed reference implementation** for a multi-pa
 -   With both servers running, execute `uv run client.py`.
 -   The client should successfully authenticate and call both public and protected tools.
 
-### Part 6: Production patterns
+### Part 6: Enhanced patterns
 
-**Learning objective**: Enhance both services with more robust, production-oriented features.
+**Learning objective**: Enhance both services with more robust features that demonstrate advanced concepts.
 
 **What developers will enhance**:
 
@@ -144,7 +144,7 @@ main                  # Complete implementation
 ├── tutorial/part-3   # Tag: AS Auth Flow
 ├── tutorial/part-4   # Tag: Protected & Refactored RS
 ├── tutorial/part-5   # Tag: Client Example
-└── tutorial/part-6   # Tag: Production Patterns
+└── tutorial/part-6   # Tag: Enhanced Patterns
 ```
 
 ### Commit message pattern
