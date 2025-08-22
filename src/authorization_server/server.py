@@ -30,7 +30,7 @@ from mcp.server.auth.settings import ClientRegistrationOptions
 from pydantic import AnyHttpUrl, BaseModel
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 from uvicorn import Config, Server
 
@@ -96,11 +96,41 @@ def create_app(settings: AuthServerSettings | None = None) -> Starlette:
         """Handle login form submission and redirect back to client's redirect_uri."""
         return await provider.handle_login_callback(request)
 
-    # Add login routes
+    # Token introspection endpoint (POST)
+    async def introspect(request: Request) -> Response:
+        """
+        Handle token introspection requests from Resource Servers.
+        
+        This endpoint allows the RS to validate access tokens.
+        """
+        form = await request.form()
+        token = form.get("token")
+        
+        if not token or not isinstance(token, str):
+            return JSONResponse({"active": False})
+        
+        # Validate the token with our provider
+        token_info = provider.validate_access_token(token)
+        
+        if token_info is None:
+            return JSONResponse({"active": False})
+        
+        # Return introspection response
+        import time
+        return JSONResponse({
+            "active": True,
+            "client_id": token_info.get("client_id", ""),
+            "scope": " ".join(token_info.get("scopes", [])),
+            "exp": token_info.get("expires_at"),
+            "iat": int(time.time()),  # Issued at
+        })
+
+    # Add login and introspection routes
     routes.extend(
         [
             Route("/login", endpoint=login_page, methods=["GET"]),
             Route("/login/callback", endpoint=login_callback, methods=["POST"]),
+            Route("/introspect", endpoint=introspect, methods=["POST"]),
         ]
     )
 

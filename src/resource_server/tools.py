@@ -69,7 +69,7 @@ def _extract_bearer_token_from_context(ctx: Context) -> str | None:
         return None
 
 
-def _require_authenticated(
+async def _require_authenticated(
     ctx: Context,
     verifier: TokenVerifier | None,
     required_scopes: list[str] | None = None,
@@ -100,19 +100,14 @@ def _require_authenticated(
 
     # SERVICE BOUNDARY: Validate token with the Authorization Server
     # (RS -> AS over HTTP)
-    import anyio
+    access = await verifier.verify_token(token)
+    if access is None:
+        raise PermissionError("401 Unauthorized: invalid or expired token")
 
-    async def _verify() -> None:
-        access = await verifier.verify_token(token)
-        if access is None:
-            raise PermissionError("401 Unauthorized: invalid or expired token")
-
-        if required_scopes:
-            missing = [s for s in required_scopes if s not in (access.scopes or [])]
-            if missing:
-                raise PermissionError(f"403 Forbidden: missing scopes {missing}")
-
-    anyio.run(_verify)
+    if required_scopes:
+        missing = [s for s in required_scopes if s not in (access.scopes or [])]
+        if missing:
+            raise PermissionError(f"403 Forbidden: missing scopes {missing}")
 
 
 def register_tools(
@@ -162,7 +157,7 @@ def register_tools(
         title="Get current server time",
         description="Returns the server's current time and related details (protected).",
     )
-    def server_time(ctx: Context) -> dict[str, Any]:
+    async def server_time(ctx: Context) -> dict[str, Any]:
         """
         Get the current server time (protected).
 
@@ -184,7 +179,7 @@ def register_tools(
         if "server_time" in (settings.require_auth_for_tools or []):
             # Optionally require a scope; this can be customized as needed
             required_scopes = []  # e.g., ["user"]
-            _require_authenticated(ctx, verifier, required_scopes=required_scopes)
+            await _require_authenticated(ctx, verifier, required_scopes=required_scopes)
 
         now = datetime.datetime.now()
         return {

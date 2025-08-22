@@ -382,6 +382,35 @@ class InMemoryAuthProvider(OAuthAuthorizationServerProvider[AuthorizationCode, R
 
         return access
 
+    def validate_access_token(self, token: str) -> dict[str, Any] | None:
+        """
+        Validate an access token for introspection.
+
+        Args:
+            token: The bearer token string.
+
+        Returns:
+            Token info dict if valid, otherwise None.
+        """
+        access = self._access_tokens.get(token)
+        if not access:
+            return None
+
+        if access.expires_at and access.expires_at < int(time.time()):
+            # Clean up expired token
+            try:
+                del self._access_tokens[token]
+            except KeyError:
+                pass
+            return None
+
+        return {
+            "client_id": access.client_id,
+            "scopes": access.scopes or [],
+            "expires_at": access.expires_at,
+            "resource": access.resource,
+        }
+
     async def revoke_token(self, token: AccessToken | RefreshToken) -> None:
         """
         Revoke a token.

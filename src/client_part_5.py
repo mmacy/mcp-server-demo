@@ -270,7 +270,9 @@ def main() -> int:
     except KeyboardInterrupt:
         return 130
     except Exception as e:
+        import traceback
         print(f"Unexpected error: {e}", file=sys.stderr)
+        traceback.print_exc()
         return 1
 
 

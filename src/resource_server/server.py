@@ -28,9 +28,11 @@ import logging
 from typing import Any
 
 from mcp.server.auth.provider import AccessToken, TokenVerifier
+from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.logging import configure_logging, get_logger
 from mcp.shared._httpx_utils import create_mcp_http_client
+from pydantic import AnyHttpUrl
 
 from settings import ResourceServerSettings
 
@@ -110,20 +112,32 @@ logger.info("Starting Resource Server with name: %s", settings.server_name)
 # TUTORIAL: Create the FastMCP server (MCP server) instance.
 # In Part 4, we refactor tools into a separate module. We also add a TokenVerifier
 # object that tools can use to validate bearer tokens (service boundary: RS -> AS).
+# When auth is enabled, we pass AuthSettings to enable OAuth metadata endpoints.
+
+auth_settings = None
+token_verifier: IntrospectionTokenVerifier | None = None
+
+if settings.auth_enabled:
+    auth_settings = AuthSettings(
+        issuer_url=AnyHttpUrl(settings.auth_server_url),
+        resource_server_url=AnyHttpUrl("http://127.0.0.1:8000"),  # The RS's own URL
+        required_scopes=None,  # We handle scopes at the tool level
+    )
+    token_verifier = IntrospectionTokenVerifier(settings.auth_server_url)
+    logger.info("Auth is enabled. Using Authorization Server at: %s", settings.auth_server_url)
+
 mcp = FastMCP(
     name=settings.server_name,
     instructions=(
         "Welcome to the Part 4 Resource Server. "
         "This server demonstrates a layered structure with optional authentication."
     ),
+    auth=auth_settings,
+    token_verifier=token_verifier if settings.auth_enabled else None,
 )
 
-# Create TokenVerifier instance if auth is enabled
-token_verifier: IntrospectionTokenVerifier | None = None
-if settings.auth_enabled:
-    token_verifier = IntrospectionTokenVerifier(settings.auth_server_url)
-    logger.info("Auth is enabled. Using Authorization Server at: %s", settings.auth_server_url)
-else:
+# Note: We still pass token_verifier to our tools for custom auth logic
+if not settings.auth_enabled:
     logger.info("Auth is disabled. All tools act as public in this configuration.")
 
 # Register tools from the content layer, passing settings and verifier
