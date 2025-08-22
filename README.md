@@ -1,6 +1,6 @@
 # MCP server demo with OAuth 2.1 authentication
 
-A reference implementation demonstrating secure MCP (Model Context Protocol) servers with OAuth 2.1 authentication. This project showcases a complete two-service architecture that physically separates authentication concerns from resource serving, following OAuth 2.1 best practices.
+A reference implementation demonstrating a secure Model Context Protocol (MCP) server with OAuth 2.1 authentication. This project showcases a complete two-service architecture that physically separates authentication concerns from resource serving, following OAuth 2.1 best practices.
 
 This project implements a secure MCP server architecture with three components:
 
