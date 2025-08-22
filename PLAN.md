@@ -40,9 +40,6 @@ This project serves as the **completed reference implementation** for a multi-pa
 **Files created**:
 
 -   `resource_server/server.py`
--   `pyproject.toml`
--   `.env.example`
--   `README.md`
 
 ### Part 2: Standalone authorization server foundation
 
@@ -51,8 +48,8 @@ This project serves as the **completed reference implementation** for a multi-pa
 **What developers will build**:
 
 -   An `authorization_server/` directory.
--   `server.py`: The web layer, responsible for setting up the server and defining HTTP routes.
--   `auth_provider.py`: The logic layer, responsible for the core OAuth logic (initially a stub).
+-   `authorization_server/server.py`: The web layer, responsible for setting up the server and defining HTTP routes.
+-   `authorization_server/auth_provider.py`: The logic layer, responsible for the core OAuth logic (initially a stub).
 
 **Verification checkpoint**:
 
@@ -81,6 +78,7 @@ This project serves as the **completed reference implementation** for a multi-pa
 
 -   **In `resource_server/server.py`**: Add a `TokenVerifier` class and middleware to protect the server.
 -   **Create `resource_server/tools.py`**: Move the existing tool here and add a new protected tool.
+-   **Create `resource_server/settings.py`**: Move the `ResourceServerSettings` into its own module so `server.py` and `tools.py` can both acces it.
 -   **Update `resource_server/server.py`**: Import and register the tools from `tools.py`.
 
 **Verification checkpoint**:
@@ -95,6 +93,8 @@ This project serves as the **completed reference implementation** for a multi-pa
 **What developers will build**:
 
 -   A `client.py` that connects to the RS, triggers the login flow on the AS, and uses the obtained token to access protected tools on the RS.
+-   Update `resource_server/server.py` to use `streamable-http` transport.
+-   Enable auth in `resource_server/settings.py`.
 
 **Verification checkpoint**:
 
@@ -123,6 +123,7 @@ mcp-server-demo/
 ├── resource_server/
 │   ├── __init__.py
 │   ├── server.py         # RS app layer: server setup and auth protection
+│   ├── settings.py       # RS app layer: server settings
 │   └── tools.py          # RS content layer: MCP tool definitions
 ├── client.py             # Example client to test the full flow
 ├── tests/
