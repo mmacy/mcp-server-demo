@@ -78,6 +78,7 @@ This project serves as the **completed reference implementation** for a multi-pa
 
 -   **In `resource_server/server.py`**: Add a `TokenVerifier` class and middleware to protect the server.
 -   **Create `resource_server/tools.py`**: Move the existing tool here and add a new protected tool.
+-   **Create `resource_server/settings.py`**: Move the `ResourceServerSettings` into its own module so `server.py` and `tools.py` can both acces it.
 -   **Update `resource_server/server.py`**: Import and register the tools from `tools.py`.
 
 **Verification checkpoint**:

@@ -24,17 +24,39 @@ Key learning points:
 - Clean separation between app wiring (server.py) and content (tools.py)
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
+
+from pydantic import BaseModel
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mcp.server.auth.provider import AccessToken, TokenVerifier
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.logging import configure_logging, get_logger
 from mcp.shared._httpx_utils import create_mcp_http_client
 
-from resource_server.settings import ResourceServerSettings
-
 logger = get_logger(__name__)
+
+
+class ResourceServerSettings(BaseSettings):
+    """Configuration for the Resource Server (MCP server)."""
+
+    model_config = SettingsConfigDict(env_prefix="RS_", env_file=".env", extra="ignore")
+
+    # Tutorial Part 1: Basic server
+    server_name: str = "mcp-demo-resource-server"
+
+    # Tutorial Part 4: Auth integration
+    auth_enabled: bool = False
+    # Base URL for the Authorization Server (e.g., http://localhost:9000)
+    auth_server_url: str = "http://localhost:9000"
+    # Name of tools that should require a valid token (others are public)
+    require_auth_for_tools: list[str] = ["server_time"]
+
+    # Logging
+    log_level: str = "INFO"
 
 
 class IntrospectionTokenVerifier(TokenVerifier):
@@ -127,7 +149,7 @@ else:
     logger.info("Auth is disabled. All tools act as public in this configuration.")
 
 # Register tools from the content layer, passing settings and verifier
-from resource_server.tools import register_tools  # noqa: E402  (import after mcp creation)
+from .tools import register_tools  # noqa: E402  (import after mcp creation)
 
 register_tools(mcp, settings, token_verifier)
 
