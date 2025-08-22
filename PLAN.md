@@ -40,9 +40,6 @@ This project serves as the **completed reference implementation** for a multi-pa
 **Files created**:
 
 -   `resource_server/server.py`
--   `pyproject.toml`
--   `.env.example`
--   `README.md`
 
 ### Part 2: Standalone authorization server foundation
 
@@ -51,8 +48,8 @@ This project serves as the **completed reference implementation** for a multi-pa
 **What developers will build**:
 
 -   An `authorization_server/` directory.
--   `server.py`: The web layer, responsible for setting up the server and defining HTTP routes.
--   `auth_provider.py`: The logic layer, responsible for the core OAuth logic (initially a stub).
+-   `authorization_server/server.py`: The web layer, responsible for setting up the server and defining HTTP routes.
+-   `authorization_server/auth_provider.py`: The logic layer, responsible for the core OAuth logic (initially a stub).
 
 **Verification checkpoint**:
 
