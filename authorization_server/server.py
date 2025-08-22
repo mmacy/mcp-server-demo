@@ -1,26 +1,25 @@
 """
-Part 2 (Authorization Server): Web layer (server setup and routes)
+Part 3 (Authorization Server): Web layer (routes + login UI)
 
-This module creates the Authorization Server (AS) web application and exposes the
-OAuth 2.1 discovery and core endpoints. In Part 2, the logic layer is intentionally
-stubbed, and the focus is on establishing a clean two-file structure (web/logic)
-and serving the well-known metadata endpoint.
+This module wires the Authorization Server (AS) web application, exposing the
+OAuth 2.1 discovery and core endpoints, and adds a simple login UI to complete
+the Authorization Code + PKCE flow.
 
 Tutorial context:
 
-- Added in Part 2
+- Updated in Part 3
 - Service: AS
 - Layer: Web
-- Teaches: Service separation, clean architecture, OAuth metadata endpoint
-- Prerequisites: Part 1 basic resource server understanding
+- Teaches: Wiring HTTP routes to provider logic, serving a login UI, and completing
+  the authorization flow
 
 Key learning points:
 
 - Keep service boundaries clear: the web layer wires HTTP endpoints, while the
   logic layer implements OAuth behavior behind a clean interface.
 - Expose OAuth 2.0 Authorization Server Metadata at
-  /.well-known/oauth-authorization-server so clients can discover endpoints.
-- Use simple, descriptive settings and strong types to make configuration obvious.
+  /.well-known/oauth-authorization-server for client discovery.
+- Add login and callback routes to drive the demo authentication flow.
 """
 
 import logging
@@ -30,6 +29,9 @@ from mcp.server.auth.routes import create_auth_routes
 from mcp.server.auth.settings import ClientRegistrationOptions
 from pydantic import AnyHttpUrl, BaseModel
 from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.routing import Route
 from uvicorn import Config, Server
 
 
@@ -39,6 +41,11 @@ class AuthServerSettings(BaseModel):
     # Tutorial Part 2: AS foundation
     server_port: int = 9000
     issuer: AnyHttpUrl = AnyHttpUrl("http://localhost:9000")
+
+    # Tutorial Part 3: Demo credentials and token settings
+    demo_username: str = "demo_user"
+    demo_password: str = "demo_password"
+    token_lifetime: int = 3600
 
 
 def create_app(settings: AuthServerSettings | None = None) -> Starlette:
@@ -50,24 +57,20 @@ def create_app(settings: AuthServerSettings | None = None) -> Starlette:
             sensible defaults are used for local development.
 
     Returns:
-        A configured Starlette application exposing OAuth 2.1 endpoints.
-
-    Tutorial note:
-        This function demonstrates the separation of concerns: we construct the
-        web layer here and delegate all OAuth logic to the provider instance
-        (defined in auth_provider.py). In Part 2, most provider methods are stubs.
+        A configured Starlette application exposing OAuth 2.1 endpoints and login UI.
     """
     logging.getLogger("uvicorn.error").setLevel(logging.INFO)
-
-    # Use defaults if no settings provided
     settings = settings or AuthServerSettings()
 
-    # TUTORIAL: The provider implements the OAuthAuthorizationServerProvider protocol.
-    # In Part 2, it's only partially implemented (get_client/register_client).
-    provider = InMemoryAuthProvider()
+    # Logic provider implementing OAuth 2.1 flows
+    provider = InMemoryAuthProvider(
+        issuer_url=settings.issuer,
+        demo_username=settings.demo_username,
+        demo_password=settings.demo_password,
+        token_lifetime_seconds=settings.token_lifetime,
+    )
 
-    # TUTORIAL: Build routes using the SDK helper so the server is spec-compliant.
-    # We enable dynamic client registration here to showcase the full metadata shape.
+    # Core OAuth routes (metadata, /authorize, /token, and dynamic client registration)
     routes = create_auth_routes(
         provider=provider,
         issuer_url=settings.issuer,
@@ -76,7 +79,31 @@ def create_app(settings: AuthServerSettings | None = None) -> Starlette:
         revocation_options=None,
     )
 
-    # Return the Starlette app with OAuth routes registered
+    # Demo login page (GET)
+    async def login_page(request: Request) -> Response:
+        """Render a minimal login page tied to the OAuth state."""
+        state = request.query_params.get("state")
+        if not isinstance(state, str) or not state:
+            # Handlers will return RFC-compliant error responses on /authorize,
+            # but the login page needs a basic error here for bad input.
+            from starlette.exceptions import HTTPException
+
+            raise HTTPException(400, "Missing state parameter")
+        return await provider.get_login_page(state)
+
+    # Demo login callback (POST)
+    async def login_callback(request: Request) -> Response:
+        """Handle login form submission and redirect back to client's redirect_uri."""
+        return await provider.handle_login_callback(request)
+
+    # Add login routes
+    routes.extend(
+        [
+            Route("/login", endpoint=login_page, methods=["GET"]),
+            Route("/login/callback", endpoint=login_callback, methods=["POST"]),
+        ]
+    )
+
     return Starlette(routes=routes)
 
 
@@ -87,12 +114,10 @@ def main() -> int:
     Returns:
         Process exit code (0 for success)
 
-    Tutorial note:
-        You can run this server with:
-            uv run authorization_server/server.py
-        Then visit:
-            http://localhost:9000/.well-known/oauth-authorization-server
-        to verify the metadata endpoint is working.
+    How to run:
+        uv run authorization_server/server.py
+    Verify metadata:
+        http://localhost:9000/.well-known/oauth-authorization-server
     """
     app = create_app()
     settings = AuthServerSettings()
