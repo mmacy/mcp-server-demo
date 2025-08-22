@@ -93,6 +93,8 @@ This project serves as the **completed reference implementation** for a multi-pa
 **What developers will build**:
 
 -   A `client.py` that connects to the RS, triggers the login flow on the AS, and uses the obtained token to access protected tools on the RS.
+-   Update `resource_server/server.py` to use `streamable-http` transport.
+-   Enable auth in `resource_server/settings.py`.
 
 **Verification checkpoint**:
 
@@ -121,6 +123,7 @@ mcp-server-demo/
 ├── resource_server/
 │   ├── __init__.py
 │   ├── server.py         # RS app layer: server setup and auth protection
+│   ├── settings.py       # RS app layer: server settings
 │   └── tools.py          # RS content layer: MCP tool definitions
 ├── client.py             # Example client to test the full flow
 ├── tests/

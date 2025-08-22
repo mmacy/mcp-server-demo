@@ -30,8 +30,8 @@ class ResourceServerSettings(BaseSettings):
     # Tutorial Part 1: Basic server
     server_name: str = "mcp-demo-resource-server"
 
-    # Tutorial Part 4: Auth integration
-    auth_enabled: bool = False
+    # Tutorial Part 5: Enable auth
+    auth_enabled: bool = True
     # Base URL for the Authorization Server (e.g., http://localhost:9000)
     auth_server_url: str = "http://localhost:9000"
     # List of tool names that require auth. If empty and auth_enabled=True, ALL require auth.

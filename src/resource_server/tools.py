@@ -29,7 +29,7 @@ from mcp.server.auth.provider import TokenVerifier
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.fastmcp.utilities.logging import get_logger
 
-from .settings import ResourceServerSettings
+from settings import ResourceServerSettings
 
 logger = get_logger(__name__)
 

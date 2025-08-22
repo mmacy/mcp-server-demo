@@ -32,7 +32,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.utilities.logging import configure_logging, get_logger
 from mcp.shared._httpx_utils import create_mcp_http_client
 
-from resource_server.settings import ResourceServerSettings
+from settings import ResourceServerSettings
 
 logger = get_logger(__name__)
 
@@ -127,15 +127,16 @@ else:
     logger.info("Auth is disabled. All tools act as public in this configuration.")
 
 # Register tools from the content layer, passing settings and verifier
-from resource_server.tools import register_tools  # noqa: E402  (import after mcp creation)
+from tools import register_tools  # noqa: E402  (import after mcp creation)
 
 register_tools(mcp, settings, token_verifier)
 
 
 if __name__ == "__main__":
-    # TUTORIAL: Run the server using the default stdio transport for simplicity.
-    # Try it (public-only): uv run mcp dev resource_server/server.py
+    # TUTORIAL: Run the server using streamable-http transport for HTTP client access.
+    # This allows the client to connect via HTTP instead of stdio.
+    # The server will run on http://127.0.0.1:8000 with MCP endpoint at /mcp
     #
-    # In later parts you will run this over HTTP transports and integrate with the
-    # Authorization Server for full 401 behaviors and WWW-Authenticate headers.
-    mcp.run()
+    # Try it: uv run src/resource_server/server.py
+    # Then run client: uv run src/client.py
+    mcp.run(transport="streamable-http", mount_path="/mcp")
